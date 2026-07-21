@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>睡眠质量评估 · PSQI</title>
+<style>*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f7;color:#1d1d1f;line-height:1.6;letter-spacing:-0.01em}
+.container{max-width:640px;margin:0 auto;padding:0 24px}.header{text-align:center;padding:56px 0 32px}.header .badge{display:inline-block;background:rgba(14,116,144,0.08);color:#0e7490;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:16px}.header h1{font-size:32px;font-weight:700;letter-spacing:-0.03em;margin-bottom:8px}.header p{font-size:17px;color:#86868b}
+.card{background:#fff;border-radius:20px;padding:40px 36px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 8px 32px rgba(0,0,0,0.04)}.q-num{font-size:13px;color:#86868b;margin-bottom:8px}.q-text{font-size:22px;font-weight:600;line-height:1.4;margin-bottom:28px}
+.opts{display:flex;flex-direction:column;gap:10px}.opt{display:flex;align-items:center;gap:14px;padding:16px 20px;border:1.5px solid #e5e5ea;border-radius:14px;cursor:pointer;transition:all 0.15s;background:#fff}.opt:hover{border-color:#0e7490;background:#ecfeff}.opt.sel{border-color:#0e7490;background:#ecfeff;box-shadow:0 0 0 3px rgba(14,116,144,0.1)}.opt-r{width:22px;height:22px;min-width:22px;border-radius:50%;border:2px solid #d1d5db}.opt.sel .opt-r{border-color:#0e7490;background:#0e7490}.opt.sel .opt-r::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;display:block;margin:5px}.opt-label{font-size:17px}
+.progress-wrap{position:sticky;top:0;z-index:10;background:rgba(245,245,247,0.85);backdrop-filter:saturate(180%)blur(20px);padding:12px 24px;border-bottom:1px solid rgba(0,0,0,0.04)}.progress-inner{max-width:592px;margin:0 auto}.progress-label{display:flex;justify-content:space-between;font-size:13px;color:#86868b;margin-bottom:6px}.progress-bar{height:4px;background:#e5e5ea;border-radius:2px;overflow:hidden}.progress-fill{height:100%;background:#0e7490;border-radius:2px;transition:width 0.4s}
+.btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:16px 0;border-radius:14px;font-size:17px;font-weight:600;border:none;cursor:pointer}.btn-p{background:#0e7490;color:#fff}.btn-p:hover{background:#155e75}.btn-p:disabled{background:#d1d5db;cursor:not-allowed}.btn-o{background:none;color:#86868b;border:1.5px solid #e5e5ea;width:auto;padding:12px 24px}
+.result-section{background:#f9fafb;border-radius:16px;padding:24px;margin-bottom:12px}.result-section h3{font-size:17px;font-weight:700;margin-bottom:8px}.result-section p{font-size:15px;color:#4b5563;line-height:1.7}
+.severity-badge{display:inline-block;padding:8px 20px;border-radius:20px;font-size:16px;font-weight:700}.s-good{background:#f0fdf4;color:#166534}.s-mid{background:#fef9c3;color:#854d0e}.s-bad{background:#fecaca;color:#991b1b}
+.fade-in{animation:fadeIn 0.4s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.disclaimer{text-align:center;font-size:13px;color:#9ca3af;padding:32px 0}
+@media(max-width:480px){.header h1{font-size:26px}.card{padding:28px 20px}.q-text{font-size:20px}}
+</style></head><body>
+<div class="progress-wrap" id="progWrap" style="display:none"><div class="progress-inner"><div class="progress-label"><span>睡眠质量 PSQI</span><span id="progCount">1/9</span></div><div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div></div></div>
+<div class="container" id="app"></div>
+<script>
+const Q=[
+{id:'q1',text:'近一个月，你通常晚上几点上床睡觉？',type:'time',opts:[{l:'22:00之前',v:0},{l:'22:00-23:00',v:0},{l:'23:00-24:00',v:1},{l:'24:00-01:00',v:2},{l:'01:00之后',v:3}]},
+{id:'q2',text:'近一个月，你从上床到入睡通常需要多长时间？',opts:[{l:'≤15分钟',v:0},{l:'16-30分钟',v:1},{l:'31-60分钟',v:2},{l:'>60分钟',v:3}]},
+{id:'q3',text:'近一个月，你每晚实际睡眠时间大约是多少？',opts:[{l:'>7小时',v:0},{l:'6-7小时',v:1},{l:'5-6小时',v:2},{l:'<5小时',v:3}]},
+{id:'q4',text:'近一个月，你因为以下问题而睡不好的频率：<br>a) 入睡困难（30分钟内不能入睡）',opts:[{l:'没有',v:0},{l:'每周<1次',v:1},{l:'每周1-2次',v:2},{l:'每周≥3次',v:3}]},
+{id:'q5',text:'b) 夜间易醒或早醒',opts:[{l:'没有',v:0},{l:'每周<1次',v:1},{l:'每周1-2次',v:2},{l:'每周≥3次',v:3}]},
+{id:'q6',text:'c) 夜间起床上厕所',opts:[{l:'没有',v:0},{l:'每周<1次',v:1},{l:'每周1-2次',v:2},{l:'每周≥3次',v:3}]},
+{id:'q7',text:'近一个月，你使用药物帮助睡眠的频率？',opts:[{l:'没有',v:0},{l:'每周<1次',v:1},{l:'每周1-2次',v:2},{l:'每周≥3次',v:3}]},
+{id:'q8',text:'近一个月，你白天感到困倦、难以保持清醒的频率？',opts:[{l:'没有',v:0},{l:'每周<1次',v:1},{l:'每周1-2次',v:2},{l:'每周≥3次',v:3}]},
+{id:'q9',text:'近一个月，你对自己整体睡眠质量的评价是？',opts:[{l:'非常好',v:0},{l:'比较好',v:1},{l:'比较差',v:2},{l:'非常差',v:3}]},
+];
+let ans={},idx=0;
+function renderIntro(){
+  document.getElementById('progWrap').style.display='none';
+  document.getElementById('app').innerHTML=`
+    <div class="header fade-in"><div class="badge">PSQI · 国际标准</div><h1>睡眠质量评估</h1><p>匹兹堡睡眠质量指数 · 9题 · 约3分钟</p></div>
+    <div class="card fade-in">
+      <p style="font-size:15px;color:#4b5563;line-height:1.7;margin-bottom:16px">PSQI（匹兹堡睡眠质量指数）是全世界使用最广泛的睡眠评估工具。它可以区分"入睡困难"和"睡眠维持困难"——两者有不同的原因和解决方案。</p>
+      <p style="font-size:15px;color:#4b5563;line-height:1.7">请根据<strong>近一个月</strong>的实际情况回答。</p>
+      <button class="btn btn-p" style="margin-top:24px" onclick="start()">开始测试</button>
+    </div>`;
+}
+function start(){idx=0;ans={};document.getElementById('progWrap').style.display='block';renderQ();}
+function renderQ(){
+  const q=Q[idx];const pct=Math.round((idx/Q.length)*100);
+  document.getElementById('progCount').textContent=`${idx+1}/${Q.length}`;document.getElementById('progFill').style.width=pct+'%';
+  const ex=ans[q.id]!==undefined?ans[q.id]:-1;
+  document.getElementById('app').innerHTML=`<div class="card fade-in"><div class="q-num">${idx+1}/${Q.length}</div><div class="q-text">${q.text}</div><div class="opts">${q.opts.map((o,i)=>`<div class="opt ${i===ex?'sel':''}" onclick="sel(${i})"><div class="opt-r"></div><span class="opt-label">${o.l}</span></div>`).join('')}</div><button class="btn btn-p" style="margin-top:24px" id="nb" ${ex===-1?'disabled':''} onclick="next()">${idx<Q.length-1?'下一题':'查看结果'}</button><button class="btn btn-o" style="margin-top:8px" onclick="prev()" ${idx===0?'disabled':''}>上一题</button></div>`;window.scrollTo({top:0,behavior:'smooth'});}
+function sel(v){ans[Q[idx].id]=Q[idx].opts[v].v;document.querySelectorAll('.opt').forEach((e,i)=>e.classList.toggle('sel',i===v));document.getElementById('nb').disabled=false;}
+function next(){if(idx<Q.length-1){idx++;renderQ()}else{showR()}}
+function prev(){if(idx>0){idx--;renderQ()}}
+function showR(){
+  document.getElementById('progWrap').style.display='none';
+  const total=Object.values(ans).reduce((a,b)=>a+b,0);const max=27;
+  let sev,cls,desc;
+  if(total<=5){sev='睡眠质量良好';cls='s-good';desc='您的睡眠整体健康。偶尔的失眠是正常的反应——尤其是在压力大的时期。保持现有的睡眠习惯即可。如果某些维度（如入睡时间或早醒）单独偏高，可以针对性调整。';}
+  else if(total<=10){sev='轻度睡眠问题';cls='s-mid';desc='您的睡眠质量有所下降。这可能还没有严重影响白天的功能，但值得关注。建议尝试以下调整：';}
+  else if(total<=15){sev='中度睡眠障碍 · 建议干预';cls='s-mid';desc='您的睡眠已经受到明显影响。长期睡眠不足会显著增加焦虑、抑郁和心血管疾病的风险。建议考虑以下行动：';}
+  else{sev='重度睡眠障碍 · 建议就医';cls='s-bad';desc='您的得分提示可能存在需要临床干预的睡眠障碍（如失眠障碍、睡眠呼吸暂停等）。长期重度失眠不是"熬一熬就能过去"的——它是一种需要医疗干预的状况。';}
+
+  document.getElementById('app').innerHTML=`
+    <div class="header fade-in"><div class="badge" style="background:rgba(14,116,144,0.08)">PSQI · 结果</div><h1>睡眠质量评估</h1><p>总分 ${total}/${max} · 分数越高睡眠越差</p><div class="severity-badge ${cls}">${sev}</div></div>
+    <div class="card fade-in"><div class="result-section"><p>${desc}</p></div></div>
+    <div class="card fade-in"><h3 style="font-size:18px;font-weight:700;margin-bottom:12px">🌙 通用改善建议</h3><div class="result-section">
+      <p>统一就寝和起床时间（包括周末）</p><p>睡前1小时停止看屏幕——蓝光抑制褪黑素</p><p>卧室温度控制在18-22°C</p><p>下午2点后不喝咖啡</p><p>如果躺下20分钟睡不着：起床去另一个房间，做一件无聊的事（如读说明书），困了再回去</p>
+      ${total>10?'<p style="margin-top:8px;color:#991b1b"><strong>建议预约睡眠科或神经内科。医生可能建议做多导睡眠监测(PSG)。</strong></p>':''}
+    </div></div>
+    <div style="text-align:center;margin-top:20px"><button class="btn btn-o" onclick="resetTest()">重新测试</button></div>
+    <div class="disclaimer">PSQI (Buysse et al., 1989)。结果仅供参考，不构成医学诊断。</div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetTest(){ans={};idx=0;renderIntro();window.scrollTo({top:0,behavior:'smooth'});}
+renderIntro();
+</script></body></html>
