@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>职业倦怠测试 · MBI-GS</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f7;color:#1d1d1f;line-height:1.6;letter-spacing:-0.01em}
+.container{max-width:640px;margin:0 auto;padding:0 24px}
+.header{text-align:center;padding:56px 0 32px}.header .badge{display:inline-block;background:rgba(234,88,12,0.08);color:#ea580c;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:16px}
+.header h1{font-size:32px;font-weight:700;letter-spacing:-0.03em;margin-bottom:8px}.header p{font-size:17px;color:#86868b}
+.card{background:#fff;border-radius:20px;padding:40px 36px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 8px 32px rgba(0,0,0,0.04)}
+.q-num{font-size:13px;color:#86868b;margin-bottom:8px}.q-text{font-size:22px;font-weight:600;line-height:1.4;margin-bottom:28px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:14px;padding:16px 20px;border:1.5px solid #e5e5ea;border-radius:14px;cursor:pointer;transition:all 0.15s;background:#fff}
+.opt:hover{border-color:#ea580c;background:#fff7ed}.opt.sel{border-color:#ea580c;background:#fff7ed;box-shadow:0 0 0 3px rgba(234,88,12,0.1)}
+.opt-r{width:22px;height:22px;min-width:22px;border-radius:50%;border:2px solid #d1d5db}.opt.sel .opt-r{border-color:#ea580c;background:#ea580c}
+.opt.sel .opt-r::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;display:block;margin:5px}
+.opt-label{font-size:17px}
+.progress-wrap{position:sticky;top:0;z-index:10;background:rgba(245,245,247,0.85);backdrop-filter:saturate(180%)blur(20px);padding:12px 24px;border-bottom:1px solid rgba(0,0,0,0.04)}
+.progress-inner{max-width:592px;margin:0 auto}.progress-label{display:flex;justify-content:space-between;font-size:13px;color:#86868b;margin-bottom:6px}
+.progress-bar{height:4px;background:#e5e5ea;border-radius:2px;overflow:hidden}.progress-fill{height:100%;background:#ea580c;border-radius:2px;transition:width 0.4s}
+.btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:16px 0;border-radius:14px;font-size:17px;font-weight:600;border:none;cursor:pointer}
+.btn-p{background:#ea580c;color:#fff}.btn-p:hover{background:#c2410c}.btn-p:disabled{background:#d1d5db;cursor:not-allowed}
+.btn-o{background:none;color:#86868b;border:1.5px solid #e5e5ea;width:auto;padding:12px 24px}
+.result-section{background:#f9fafb;border-radius:16px;padding:24px;margin-bottom:12px}.result-section h3{font-size:17px;font-weight:700;margin-bottom:8px}.result-section p{font-size:15px;color:#4b5563;line-height:1.7}
+.gauge-row{display:flex;gap:16px;margin:16px 0}.gauge{flex:1;text-align:center;padding:16px;border-radius:14px;background:#f9fafb}.gauge .val{font-size:36px;font-weight:800}.gauge .lbl{font-size:13px;color:#86868b;margin-top:4px}
+.severity-badge{display:inline-block;padding:8px 20px;border-radius:20px;font-size:16px;font-weight:700}
+.s-low{background:#f0fdf4;color:#166534}.s-mid{background:#fef9c3;color:#854d0e}.s-high{background:#fed7aa;color:#9a3412}.s-severe{background:#fecaca;color:#991b1b}
+.fade-in{animation:fadeIn 0.4s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.disclaimer{text-align:center;font-size:13px;color:#9ca3af;padding:32px 0}
+@media(max-width:480px){.header h1{font-size:26px}.card{padding:28px 20px}.q-text{font-size:20px}}
+</style></head><body>
+<div class="progress-wrap" id="progWrap" style="display:none"><div class="progress-inner"><div class="progress-label"><span>职业倦怠 MBI-GS</span><span id="progCount">1/12</span></div><div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div></div></div>
+<div class="container" id="app"></div>
+<script>
+const Q=[
+{id:'e1',dim:'情绪耗竭',text:'工作让我感觉身心俱疲'},{id:'e2',dim:'情绪耗竭',text:'下班的时候我感觉精疲力竭'},{id:'e3',dim:'情绪耗竭',text:'早晨起床想到要面对一天的工作，就觉得非常累'},
+{id:'e4',dim:'情绪耗竭',text:'整天工作对我来说确实压力很大'},
+{id:'d1',dim:'去人格化',text:'自从开始这份工作，我对工作越来越不感兴趣'},{id:'d2',dim:'去人格化',text:'我对工作不像以前那样热心了'},
+{id:'d3',dim:'去人格化',text:'我怀疑自己所做的工作的意义'},{id:'d4',dim:'去人格化',text:'我对自己所做的工作是否有贡献越来越不关心'},
+{id:'a1',dim:'成就感降低',text:'我能有效地解决工作中出现的问题(R)'},{id:'a2',dim:'成就感降低',text:'我觉得我在为公司做有用的贡献(R)'},
+{id:'a3',dim:'成就感降低',text:'我完成了很多有价值的工作(R)'},{id:'a4',dim:'成就感降低',text:'我自信自己能有效地完成各项工作(R)'},
+];
+const OPTS=[{l:'从不',v:0},{l:'一年几次',v:1},{l:'每月一次',v:2},{l:'每月几次',v:3},{l:'每周一次',v:4},{l:'每周几次',v:5},{l:'每天',v:6}];
+let ans={},idx=0;
+function renderIntro(){
+  document.getElementById('progWrap').style.display='none';
+  document.getElementById('app').innerHTML=`
+    <div class="header fade-in"><div class="badge">MBI-GS · 国际标准</div><h1>职业倦怠测试</h1><p>Maslach 职业倦怠量表 · 12题 · 约4分钟</p></div>
+    <div class="card fade-in">
+      <p style="font-size:15px;color:#4b5563;line-height:1.7;margin-bottom:16px">职业倦怠（Burnout）不是"矫情"，而是世界卫生组织（WHO）正式认定的职业现象。它由三个维度构成：</p>
+      <div class="gauge-row"><div class="gauge"><div style="color:#ea580c;font-size:24px;font-weight:700">情绪耗竭</div><div class="lbl">感到被工作抽空</div></div><div class="gauge"><div style="color:#d97706;font-size:24px;font-weight:700">去人格化</div><div class="lbl">对工作冷漠疏离</div></div><div class="gauge"><div style="color:#0891b2;font-size:24px;font-weight:700">成就感降低</div><div class="lbl">觉得工作没价值</div></div></div>
+      <div style="background:#fef3c7;padding:16px 20px;border-radius:12px;font-size:14px;color:#92400e">⚠️ 标注 (R) 的题目为反向计分——选"从不"反而是高分。系统已自动处理。</div>
+      <button class="btn btn-p" style="margin-top:24px" onclick="start()">开始测试</button>
+    </div>`;
+}
+function start(){idx=0;ans={};document.getElementById('progWrap').style.display='block';renderQ();}
+function renderQ(){
+  const q=Q[idx];const pct=Math.round((idx/Q.length)*100);
+  document.getElementById('progCount').textContent=`${idx+1}/${Q.length}`;document.getElementById('progFill').style.width=pct+'%';
+  const ex=ans[q.id]!==undefined?ans[q.id]:-1;
+  document.getElementById('app').innerHTML=`<div class="card fade-in"><div class="q-num">${idx+1}/${Q.length} · ${q.dim}</div><div class="q-text">${q.text}</div><div class="opts">${OPTS.map((o,i)=>`<div class="opt ${i===ex?'sel':''}" onclick="sel(${i})"><div class="opt-r"></div><span class="opt-label">${o.l}</span></div>`).join('')}</div><button class="btn btn-p" style="margin-top:24px" id="nb" ${ex===-1?'disabled':''} onclick="next()">${idx<Q.length-1?'下一题':'查看结果'}</button><button class="btn btn-o" style="margin-top:8px" onclick="prev()" ${idx===0?'disabled':''}>上一题</button></div>`;window.scrollTo({top:0,behavior:'smooth'});}
+function sel(v){ans[Q[idx].id]=OPTS[v].v;document.querySelectorAll('.opt').forEach((e,i)=>e.classList.toggle('sel',i===v));document.getElementById('nb').disabled=false;}
+function next(){if(idx<Q.length-1){idx++;renderQ()}else{showR()}}
+function prev(){if(idx>0){idx--;renderQ()}}
+function showR(){
+  document.getElementById('progWrap').style.display='none';
+  const eScore=Q.filter(q=>q.id.startsWith('e')).reduce((s,q)=>s+(ans[q.id]||0),0);
+  const dScore=Q.filter(q=>q.id.startsWith('d')).reduce((s,q)=>s+(ans[q.id]||0),0);
+  const aScore=Q.filter(q=>q.id.startsWith('a')).reduce((s,q)=>s+(6-(ans[q.id]||0)),0); // reversed
+  const eMax=24,dMax=24,aMax=24;const ePct=Math.round(eScore/eMax*100),dPct=Math.round(dScore/dMax*100),aPct=Math.round(aScore/aMax*100);
+  let sev,cls,text;
+  if(ePct<33&&dPct<33&&aPct<33){sev='低倦怠水平';cls='s-low';text='你的工作状态总体健康。偶尔的疲劳是正常的——关键是疲劳之后能恢复。'}
+  else if(ePct>=66||dPct>=66){sev='高风险 — 需要认真对待';cls='s-severe';text='你在至少一个维度上达到了临床显著水平。职业倦怠不是"坚持一下"就能过去的——它需要系统性干预：休息、调整工作边界、或重新评估职业方向。'}
+  else if(ePct>=33||dPct>=33){sev='中度倦怠 · 建议关注';cls='s-mid';text='你可能正在经历一些倦怠的早期信号。这是干预的最佳时机——在它变得更严重之前做出调整。'}
+  else{sev='轻度 · 偶发疲劳';cls='s-mid';text='你偶尔会感到工作疲惫，但整体还在可控范围。注意区分"身体累"和"心理累"——后者更需要关注。'}
+
+  document.getElementById('app').innerHTML=`
+    <div class="header fade-in"><div class="badge" style="background:rgba(234,88,12,0.08)">MBI-GS · 结果</div><h1>职业倦怠评估</h1><div class="severity-badge ${cls}">${sev}</div></div>
+    <div class="card fade-in"><h3 style="font-size:18px;font-weight:700;margin-bottom:16px">三维度得分</h3>
+      <div class="gauge-row"><div class="gauge" style="background:#fff7ed"><div class="val" style="color:#ea580c">${ePct}%</div><div class="lbl">情绪耗竭</div><div class="lbl">${eScore}/24</div></div><div class="gauge" style="background:#fefce8"><div class="val" style="color:#d97706">${dPct}%</div><div class="lbl">去人格化</div><div class="lbl">${dScore}/24</div></div><div class="gauge" style="background:#ecfeff"><div class="val" style="color:#0891b2">${aPct}%</div><div class="lbl">成就感降低</div><div class="lbl">${aScore}/24</div></div></div>
+      <div class="result-section"><p>${text}</p></div>
+    </div>
+    <div class="card fade-in"><h3 style="font-size:18px;font-weight:700;margin-bottom:12px">📋 分层建议</h3><div class="result-section">
+      <p><strong>如果情绪耗竭高：</strong>你的"油箱"已经空了。这不是意志力问题。优先：请假3-5天完全脱离工作、减少加班、和上级沟通工作负荷。恢复需要时间。</p>
+      <p style="margin-top:8px"><strong>如果去人格化高：</strong>你对工作产生了情感隔离——这是大脑的自我保护机制。试着回忆你当初为什么选择这份工作。如果答案已经不存在了，也许是时候考虑转换赛道。</p>
+      <p style="margin-top:8px"><strong>如果成就感下降：</strong>你可能做了很多事但感受不到它们的价值。试试每周记录"今天我做了什么有价值的事"——外部肯定不足时，先学会自己肯定自己。</p>
+    </div></div>
+    <div style="text-align:center;margin-top:20px"><button class="btn btn-o" onclick="resetTest()">重新测试</button></div>
+    <div class="disclaimer">MBI-GS (Schaufeli et al., 1996)。结果仅供参考，不构成临床诊断。</div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetTest(){ans={};idx=0;renderIntro();window.scrollTo({top:0,behavior:'smooth'});}
+renderIntro();
+</script></body></html>
