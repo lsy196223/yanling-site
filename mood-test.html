@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪状态深度评估 — PHQ-9 + GAD-7 双量表</title>
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f5f5f7; color: #1d1d1f; line-height: 1.6; letter-spacing: -0.01em;
+}
+.container { max-width: 640px; margin: 0 auto; padding: 0 24px; }
+.header { text-align: center; padding: 56px 0 32px; }
+.header .badge { display: inline-block; background: rgba(13,148,136,0.08); color: #0f766e; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.02em; }
+.header h1 { font-size: 32px; font-weight: 700; color: #1d1d1f; margin-bottom: 8px; letter-spacing: -0.03em; }
+.header p { font-size: 17px; color: #86868b; line-height: 1.5; }
+
+/* Progress */
+.progress-wrap { position: sticky; top: 0; z-index: 10; background: rgba(245,245,247,0.85); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); padding: 12px 24px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+.progress-inner { max-width: 592px; margin: 0 auto; }
+.progress-label { display: flex; justify-content: space-between; font-size: 13px; color: #86868b; margin-bottom: 6px; }
+.progress-bar { height: 4px; background: #e5e5ea; border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: #0d9488; border-radius: 2px; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+
+/* Card */
+.card { background: #fff; border-radius: 20px; padding: 40px 36px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.04); }
+.section-badge { display: inline-block; font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 14px; margin-bottom: 20px; letter-spacing: 0.02em; }
+.section-badge.depression { background: #eff6ff; color: #2563eb; }
+.section-badge.anxiety { background: #fef3c7; color: #d97706; }
+.question-number { font-size: 13px; color: #86868b; font-weight: 500; margin-bottom: 8px; letter-spacing: 0.04em; }
+.question-text { font-size: 22px; font-weight: 600; color: #1d1d1f; line-height: 1.4; margin-bottom: 8px; letter-spacing: -0.02em; }
+.question-context { font-size: 15px; color: #86868b; line-height: 1.6; margin-bottom: 24px; padding: 14px 18px; background: #f9fafb; border-radius: 12px; border-left: 3px solid #d1d5db; }
+
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: flex-start; gap: 14px; padding: 16px 20px; border: 1.5px solid #e5e5ea; border-radius: 14px; cursor: pointer; transition: all 0.15s ease; background: #fff; }
+.option:hover { border-color: #0d9488; background: #f0fdfa; }
+.option.selected { border-color: #0d9488; background: #f0fdfa; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+.option-radio { width: 22px; height: 22px; min-width:22px; border-radius: 50%; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin-top: 1px; }
+.option.selected .option-radio { border-color: #0d9488; background: #0d9488; }
+.option.selected .option-radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.option-text { flex:1; }
+.option-label { font-size: 16px; font-weight: 500; color: #1d1d1f; display: block; letter-spacing: -0.01em; }
+.option-desc { font-size: 13px; color: #86868b; margin-top: 2px; line-height: 1.5; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 16px 0; border-radius: 14px; font-size: 17px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; letter-spacing: -0.01em; }
+.btn-primary { background: #0d9488; color: #fff; box-shadow: 0 2px 8px rgba(13,148,136,0.25); }
+.btn-primary:hover { background: #0f766e; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(13,148,136,0.3); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { background: #d1d5db; box-shadow: none; cursor: not-allowed; transform: none; }
+.btn-outline { background: none; color: #86868b; border: 1.5px solid #e5e5ea; width: auto; padding: 12px 24px; }
+
+/* Intro - theory section */
+.theory-block { margin-bottom: 28px; }
+.theory-block h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.theory-block p { font-size: 15px; color: #4b5563; line-height: 1.7; margin-bottom: 8px; }
+.theory-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; border-radius: 12px; overflow: hidden; }
+.theory-table th { background: #f3f4f6; padding: 10px 12px; text-align: left; font-weight: 600; color: #374151; font-size:12px; }
+.theory-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #4b5563; }
+.theory-table tr:last-child td { border-bottom: none; }
+
+.intro-note { background: #fef3c7; border-radius: 12px; padding: 16px 20px; margin-top: 24px; font-size: 14px; color: #92400e; line-height: 1.6; }
+
+/* Results */
+.result-header { text-align: center; margin-bottom: 32px; }
+.result-score { font-size: 72px; font-weight: 800; color: #1d1d1f; line-height: 1; letter-spacing: -0.04em; }
+.result-score-label { font-size: 15px; color: #86868b; margin-top: 4px; }
+.severity-badge { display: inline-block; padding: 8px 20px; border-radius: 20px; font-size: 16px; font-weight: 700; margin-top: 16px; letter-spacing: 0.02em; }
+.severity-none { background: #f0fdf4; color: #166534; }
+.severity-mild { background: #fef9c3; color: #854d0e; }
+.severity-moderate { background: #fed7aa; color: #9a3412; }
+.severity-severe { background: #fecaca; color: #991b1b; }
+
+.result-section { background: #f9fafb; border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+.result-section h3 { font-size: 17px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em; }
+.result-section p { font-size: 15px; color: #4b5563; line-height: 1.7; margin-bottom: 10px; }
+.result-section ul { margin-left: 20px; margin-top: 8px; }
+.result-section li { font-size: 15px; color: #4b5563; line-height: 1.8; }
+
+.result-bar-wrap { margin: 16px 0; }
+.result-bar-label { display: flex; justify-content: space-between; font-size: 13px; color: #86868b; margin-bottom: 4px; }
+.result-bar { height: 10px; background: #e5e5ea; border-radius: 5px; overflow: hidden; }
+.result-bar-fill { height: 100%; border-radius: 5px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+.result-bar-fill.depression { background: linear-gradient(90deg,#3b82f6,#2563eb); }
+.result-bar-fill.anxiety { background: linear-gradient(90deg,#f59e0b,#d97706); }
+
+.cta-box { background: #f0fdfa; border: 1.5px solid rgba(13,148,136,0.2); border-radius: 16px; padding: 24px; text-align: center; margin-top: 24px; }
+.cta-box h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.cta-box p { font-size: 15px; color: #4b5563; margin-bottom: 16px; }
+.action-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.disclaimer { text-align: center; font-size: 13px; color: #9ca3af; padding: 32px 0; line-height: 1.6; }
+
+/* Accordion */
+.accordion { border: 1px solid #e5e5ea; border-radius: 14px; overflow: hidden; margin-bottom: 12px; background: #fff; }
+.accordion-header { padding: 18px 20px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+.accordion-header:hover { background: #f9fafb; }
+.accordion-header .arrow { font-size: 14px; transition: transform 0.2s; color: #86868b; }
+.accordion.open .accordion-header .arrow { transform: rotate(180deg); }
+.accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.accordion.open .accordion-body { max-height: 600px; }
+.accordion-body-inner { padding: 0 20px 18px; font-size: 15px; color: #4b5563; line-height: 1.7; }
+.accordion-body-inner ul { margin-left: 18px; }
+.accordion-body-inner li { margin-bottom: 4px; }
+
+.fade-in { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+@media (max-width: 480px) {
+  .header { padding: 40px 0 24px; }
+  .header h1 { font-size: 26px; }
+  .card { padding: 28px 20px; border-radius: 16px; }
+  .question-text { font-size: 20px; }
+  .result-score { font-size: 56px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-wrap" id="progressWrap" style="display:none">
+  <div class="progress-inner">
+    <div class="progress-label"><span id="progressSection">抑郁症筛查</span><span id="progressCount">1/16</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="container" id="app"></div>
+
+<script>
+// ═══════════════════════════════════════
+// 情境化 PHQ-9 + GAD-7 题库
+// ═══════════════════════════════════════
+
+const PHQ9 = [
+  {
+    id:'phq1', text:'做事时提不起劲或没有兴趣',
+    context:'比如：曾经很喜欢的爱好（追剧、运动、和朋友聚会）最近完全不想碰；工作或学习时坐在那里很久却什么也做不了，感觉"整个人被抽空了"。',
+    options: [
+      { label:'完全不会', desc:'我对各种活动仍然很有兴趣，能正常投入', value:0 },
+      { label:'偶尔几天', desc:'有那么一两天觉得什么都不想干，但很快恢复', value:1 },
+      { label:'一半以上的日子', desc:'最近两周里，大概有7-10天处于提不起劲的状态', value:2 },
+      { label:'几乎每天', desc:'每天早上醒来就觉得沉重，做什么都需要巨大的意志力', value:3 }
+    ]
+  },
+  {
+    id:'phq2', text:'感到心情低落、沮丧或绝望',
+    context:'比如：没有特别的原因却一直想哭；对未来感到一片灰暗；觉得自己被困住了，看不到出口。这种低落的情绪持续存在，不是因为某件具体的事。',
+    options: [
+      { label:'完全不会', desc:'情绪总体平稳，偶尔不开心也能很快调整', value:0 },
+      { label:'偶尔几天', desc:'有那么几天觉得特别丧，但还能正常生活', value:1 },
+      { label:'一半以上的日子', desc:'大部分时间都笼罩在低落情绪里，很难被开心的事拉出来', value:2 },
+      { label:'几乎每天', desc:'持续感到绝望，早晨尤其严重，觉得自己毫无价值', value:3 }
+    ]
+  },
+  {
+    id:'phq3', text:'入睡困难、睡不安稳或睡眠过多',
+    context:'比如：躺下后脑子停不下来，反复想白天的事或过去的错误；半夜三四点醒来再也睡不着；或者相反——每天睡十几个小时还是觉得累。',
+    options: [
+      { label:'完全不会', desc:'睡眠规律，入睡和起床时间基本正常', value:0 },
+      { label:'偶尔几天', desc:'有那么几天睡不好或多睡了，但没有影响白天状态', value:1 },
+      { label:'一半以上的日子', desc:'大部分夜晚都入睡困难或早醒，或者经常需要白天大量补觉', value:2 },
+      { label:'几乎每天', desc:'失眠几乎成为常态，或者每天昏睡但依然极度疲惫', value:3 }
+    ]
+  },
+  {
+    id:'phq4', text:'感觉疲倦或没有活力',
+    context:'比如：即使没有干什么体力活也觉得很累；说话都觉得费力；别人觉得你变慢了——走路慢、反应慢、说话语速变慢。',
+    options: [
+      { label:'完全不会', desc:'精力充沛，能完成日常活动', value:0 },
+      { label:'偶尔几天', desc:'有几天感觉特别累，但休息后能恢复', value:1 },
+      { label:'一半以上的日子', desc:'经常觉得精力不济，需要强迫自己才能完成日常事务', value:2 },
+      { label:'几乎每天', desc:'整个人像电池被拔掉一样，连洗澡、起床都觉得耗尽力气', value:3 }
+    ]
+  },
+  {
+    id:'phq5', text:'食欲不振或吃太多',
+    context:'比如：以前爱吃的东西现在完全没胃口，体重不知不觉下降；或者相反——不停地吃东西来填补内心的空虚感，体重明显增加。',
+    options: [
+      { label:'完全不会', desc:'食欲正常，体重无明显变化', value:0 },
+      { label:'偶尔几天', desc:'有几顿饭不想吃或暴食，但整体可控', value:1 },
+      { label:'一半以上的日子', desc:'胃口明显改变，家人也注意到了，体重有变化', value:2 },
+      { label:'几乎每天', desc:'吃不下或暴食已经成为应对情绪的主要方式，体重显著波动', value:3 }
+    ]
+  },
+  {
+    id:'phq6', text:'觉得自己很糟——或觉得自己很失败，或让家人失望',
+    context:'比如：反复回想自己犯过的错误，觉得自己一事无成；认为自己是家人的负担；即使别人说你做得不错，你也不相信。',
+    options: [
+      { label:'完全不会', desc:'对自己有客观的认识，能接受自己的不完美', value:0 },
+      { label:'偶尔几天', desc:'有那么几天对自己特别苛刻，但能意识到这只是暂时的', value:1 },
+      { label:'一半以上的日子', desc:'经常陷入自我否定，觉得比不上别人，是个失败者', value:2 },
+      { label:'几乎每天', desc:'持续的自我厌恶，觉得自己不配被爱、不配拥有好的东西', value:3 }
+    ]
+  },
+  {
+    id:'phq7', text:'对事物专注有困难，例如阅读或看电视时',
+    context:'比如：一页书看了十分钟不知道在说什么；别人跟你说话你走神；做决定变得异常困难——连中午吃什么都要纠结很久。',
+    options: [
+      { label:'完全不会', desc:'注意力和决策力和平时差不多', value:0 },
+      { label:'偶尔几天', desc:'偶尔走神，但不影响工作效率', value:1 },
+      { label:'一半以上的日子', desc:'明显感到注意力下降，同事或家人也注意到了', value:2 },
+      { label:'几乎每天', desc:'无法完整看完一段文字或一集电视剧，连简单决定都觉得困难', value:3 }
+    ]
+  },
+  {
+    id:'phq8', text:'动作或说话速度缓慢到别人已经觉察——或正好相反，烦躁、坐立不安',
+    context:'比如：家人发现你走路变慢了、说话声音变轻了、反应迟钝了；或者相反——你不停地踱步、绞手指、坐不住，内心像有一只困兽。',
+    options: [
+      { label:'完全不会', desc:'动作和语速正常', value:0 },
+      { label:'偶尔几天', desc:'有那么几天感觉动作慢了或烦躁不安', value:1 },
+      { label:'一半以上的日子', desc:'家人或同事已经注意到你的变化并问"你怎么了"', value:2 },
+      { label:'几乎每天', desc:'动作迟缓或躁动已经明显到影响日常生活', value:3 }
+    ]
+  },
+  {
+    id:'phq9', text:'有不如死掉或用某种方式伤害自己的念头',
+    context:'比如：觉得"如果我不在了，别人可能过得更好"；想过结束生命的方式，即使没有具体计划；或者有过自伤行为。请如实选择——你的安全比什么都重要。',
+    options: [
+      { label:'完全不会', desc:'从未有过这类想法', value:0 },
+      { label:'偶尔几天', desc:'有过一闪而过的念头，但从未认真考虑', value:1 },
+      { label:'一半以上的日子', desc:'经常有"不想活了"的念头，开始想象具体的方式', value:2 },
+      { label:'几乎每天', desc:'有明确的自伤计划或行为，请立即拨打心理援助热线 400-161-9995', value:3 }
+    ]
+  }
+];
+
+const GAD7 = [
+  {
+    id:'gad1', text:'感觉紧张、焦虑或急切',
+    context:'比如：心里总是绷着一根弦，好像随时会发生不好的事；身体上感到肌肉紧绷、肩膀酸痛；即使没有什么实际威胁，也无法让自己"松下来"。',
+    options: [
+      { label:'完全不会', desc:'情绪平稳，没有无缘无故的紧张感', value:0 },
+      { label:'偶尔几天', desc:'有那么几天神经紧绷，但事情过去就好了', value:1 },
+      { label:'一半以上的日子', desc:'大部分时间都处于"随时待命"的警觉状态', value:2 },
+      { label:'几乎每天', desc:'持续的高度警觉，身体也出现心悸、出汗、发抖等反应', value:3 }
+    ]
+  },
+  {
+    id:'gad2', text:'无法停止或控制担忧',
+    context:'比如：一个问题反复在脑子里转——"万一……怎么办？"；明知道担忧没有用，但就是停不下来；晚上躺下后大脑反而更加活跃。',
+    options: [
+      { label:'完全不会', desc:'能控制自己的思绪，不会反复纠结同一件事', value:0 },
+      { label:'偶尔几天', desc:'有那么几天为某件事反复担忧，但最终能放下', value:1 },
+      { label:'一半以上的日子', desc:'经常陷入"脑内循环"，一个担忧接着另一个', value:2 },
+      { label:'几乎每天', desc:'担忧像背景噪音一样从不停止，严重干扰睡眠和专注力', value:3 }
+    ]
+  },
+  {
+    id:'gad3', text:'对各种各样的事情担忧过多',
+    context:'比如：不只担心一件大事，而是担心工作、健康、家庭、钱——所有事情同时让你焦虑；别人觉得"你想太多了"，但你觉得这些都是真实的威胁。',
+    options: [
+      { label:'完全不会', desc:'担忧集中在合理范围内，不会同时焦虑很多事', value:0 },
+      { label:'偶尔几天', desc:'有几件事同时压过来时感到焦虑，但能分清轻重缓急', value:1 },
+      { label:'一半以上的日子', desc:'几乎每天都有多个领域的担忧，感觉四面楚歌', value:2 },
+      { label:'几乎每天', desc:'从早起就开始焦虑，大大小小的事都让你心神不宁', value:3 }
+    ]
+  },
+  {
+    id:'gad4', text:'很难放松下来',
+    context:'比如：即使周末躺在沙发上，脑子里也还在跑；度假也无法享受当下；身体总是僵硬、紧绷，深呼吸都做不到。',
+    options: [
+      { label:'完全不会', desc:'能在休闲时间真正放松', value:0 },
+      { label:'偶尔几天', desc:'有时觉得难以放松，但还是能休息', value:1 },
+      { label:'一半以上的日子', desc:'大多数放松方式都失效了——看电视走神、瑜伽也静不下来', value:2 },
+      { label:'几乎每天', desc:'完全不知道"放松"是什么感觉了，时刻处于紧绷状态', value:3 }
+    ]
+  },
+  {
+    id:'gad5', text:'由于不安而无法静坐',
+    context:'比如：开会时不停地抖腿、转笔；总是需要站起来走动；感觉身体里有一股能量必须释放出去。',
+    options: [
+      { label:'完全不会', desc:'能安静坐着完成工作或社交', value:0 },
+      { label:'偶尔几天', desc:'偶尔坐立不安，但不会影响正常活动', value:1 },
+      { label:'一半以上的日子', desc:'经常需要站起来走动，别人注意到了你的躁动', value:2 },
+      { label:'几乎每天', desc:'无法保持静坐超过几分钟，内心驱动力让你必须不停地动', value:3 }
+    ]
+  },
+  {
+    id:'gad6', text:'变得容易烦恼或急躁',
+    context:'比如：平时可以容忍的小事现在一点就着；对孩子或伴侣发脾气后自己又后悔；感觉自己的"耐心值"降到了零。',
+    options: [
+      { label:'完全不会', desc:'情绪稳定，对日常琐事有耐心', value:0 },
+      { label:'偶尔几天', desc:'有几天特别容易烦躁，但能控制住不对人发火', value:1 },
+      { label:'一半以上的日子', desc:'经常因为小事发火，对家人和朋友造成了影响', value:2 },
+      { label:'几乎每天', desc:'持续的易怒状态，感觉自己随时会爆炸', value:3 }
+    ]
+  },
+  {
+    id:'gad7', text:'感到似乎将有可怕的事情发生而害怕',
+    context:'比如：总觉得"暴风雨前的宁静"，有一种不祥的预感；具体说不出怕什么，但就是很害怕；心跳加速、手心出汗，好像危险就在眼前。',
+    options: [
+      { label:'完全不会', desc:'没有这种莫名的恐惧感', value:0 },
+      { label:'偶尔几天', desc:'偶尔有"不好的预感"，但过一会就忘了', value:1 },
+      { label:'一半以上的日子', desc:'频繁感到将有灾难降临，这种恐惧影响了你出门或社交', value:2 },
+      { label:'几乎每天', desc:'持续的恐惧感和濒死感，有时伴随惊恐发作（心悸、窒息感、眩晕）', value:3 }
+    ]
+  }
+];
+
+const ALL_QUESTIONS = [...PHQ9, ...GAD7];
+let answers = {}, currentIdx = 0;
+
+function renderIntro() {
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('app').innerHTML = `
+    <div class="header fade-in">
+      <div class="badge">国际标准量表 · 近两周内</div>
+      <h1>情绪状态深度评估</h1>
+      <p>基于 PHQ-9 抑郁症筛查 + GAD-7 焦虑症筛查<br>共 16 题，每题附具体情境，约 5 分钟完成</p>
+    </div>
+
+    <div class="card fade-in">
+      <h3 style="font-size:20px;font-weight:700;margin-bottom:16px;letter-spacing:-0.02em;">关于本次测试</h3>
+
+      <div class="theory-block">
+        <h3>📋 什么是 PHQ-9？</h3>
+        <p>PHQ-9（Patient Health Questionnaire-9）是目前全球使用最广泛的抑郁自评工具，由美国哥伦比亚大学依据 DSM-5 抑郁症诊断标准编制。被世界卫生组织（WHO）推荐用于初级保健中的抑郁症初筛。</p>
+        <table class="theory-table">
+          <tr><th>分数区间</th><th>严重程度</th><th>建议行动</th></tr>
+          <tr><td>0 – 4</td><td>无明显抑郁</td><td>保持健康生活习惯</td></tr>
+          <tr><td>5 – 9</td><td>轻度</td><td>观察等待，增加运动和社交</td></tr>
+          <tr><td>10 – 14</td><td>中度</td><td>建议心理咨询评估</td></tr>
+          <tr><td>15 – 19</td><td>中重度</td><td>尽快预约精神科或心理治疗</td></tr>
+          <tr><td>20 – 27</td><td>重度</td><td>立即寻求专业医疗帮助</td></tr>
+        </table>
+      </div>
+
+      <div class="theory-block">
+        <h3>📋 什么是 GAD-7？</h3>
+        <p>GAD-7（Generalized Anxiety Disorder-7）是广泛性焦虑障碍的标准筛查工具。它评估过去两周内焦虑症状的频率和程度。与特定恐惧不同，GAD 的特征是"弥漫性的、难以控制的、对多种事物的过度担忧"。</p>
+        <table class="theory-table">
+          <tr><th>分数区间</th><th>严重程度</th><th>建议行动</th></tr>
+          <tr><td>0 – 4</td><td>无明显焦虑</td><td>保持正常节奏</td></tr>
+          <tr><td>5 – 9</td><td>轻度</td><td>尝试正念冥想、呼吸训练</td></tr>
+          <tr><td>10 – 14</td><td>中度</td><td>建议心理咨询评估</td></tr>
+          <tr><td>15 – 21</td><td>重度</td><td>尽快联系精神科医生</td></tr>
+        </table>
+      </div>
+
+      <div class="theory-block">
+        <h3>🧬 抑郁和焦虑为什么经常同时出现？</h3>
+        <p>临床上，抑郁和焦虑的共病率高达 60%。它们共享某些神经生物学基础——比如前额叶皮层功能下降、杏仁核过度激活。简单地说，一个长期焦虑的人最终可能耗竭而转为抑郁；一个抑郁的人也可能因为功能受损而产生强烈的焦虑。</p>
+        <p>这就是为什么本测试同时覆盖两个维度——只测一个容易漏掉另一个。</p>
+      </div>
+
+      <div class="intro-note">
+        <strong>⚠️ 重要提示</strong><br>
+        本测试仅为<strong>自我筛查工具</strong>，不能替代专业诊断。得分较高不代表你一定患有抑郁症或焦虑症——感冒、甲状腺问题、维生素缺乏等都可能导致类似症状。请务必由医生进行综合评估。<br><br>
+        如果你正在经历自伤念头，请立即拨打 <strong>全国心理援助热线：400-161-9995</strong>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:24px" onclick="startTest()">开始测试</button>
+    </div>
+  `;
+}
+
+function startTest() {
+  currentIdx = 0; answers = {};
+  document.getElementById('progressWrap').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = ALL_QUESTIONS[currentIdx];
+  const total = ALL_QUESTIONS.length;
+  const pct = Math.round((currentIdx / total) * 100);
+  const isPhq = currentIdx < PHQ9.length;
+
+  document.getElementById('progressSection').textContent = isPhq ? '抑郁症筛查 (PHQ-9)' : '焦虑症筛查 (GAD-7)';
+  document.getElementById('progressCount').textContent = `${currentIdx + 1}/${total}`;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const existing = answers[q.id] !== undefined ? answers[q.id] : -1;
+
+  document.getElementById('app').innerHTML = `
+    <div class="card fade-in">
+      <span class="section-badge ${isPhq ? 'depression' : 'anxiety'}">${isPhq ? 'PHQ-9 抑郁症筛查' : 'GAD-7 焦虑症筛查'}</span>
+      <div class="question-number">${isPhq ? '问题 ' + (currentIdx+1) : '问题 ' + (currentIdx - PHQ9.length + 1)} / ${isPhq ? PHQ9.length : GAD7.length}</div>
+      <div class="question-text">${q.text}</div>
+      <div class="question-context">${q.context}</div>
+      <div class="options">
+        ${q.options.map((opt,i) => `
+          <div class="option ${i === existing ? 'selected':''}" onclick="selectOption(${i})">
+            <div class="option-radio"></div>
+            <div class="option-text">
+              <span class="option-label">${opt.label}</span>
+              <span class="option-desc">${opt.desc}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-primary" style="margin-top:24px" id="nextBtn"
+        ${existing === -1 ? 'disabled' : ''}
+        onclick="nextQuestion()">
+        ${currentIdx < total - 1 ? '下一题' : '查看评估结果'}
+      </button>
+      <button class="btn btn-outline" style="margin-top:8px" onclick="prevQuestion()" ${currentIdx === 0 ? 'disabled' : ''}>上一题</button>
+    </div>
+  `;
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function selectOption(val) {
+  answers[ALL_QUESTIONS[currentIdx].id] = val;
+  document.querySelectorAll('.option').forEach((el,i) => { el.classList.toggle('selected', i === val); });
+  const btn = document.getElementById('nextBtn'); if (btn) btn.disabled = false;
+}
+
+function nextQuestion() {
+  if (currentIdx < ALL_QUESTIONS.length - 1) { currentIdx++; renderQuestion(); }
+  else { showResults(); }
+}
+
+function prevQuestion() {
+  if (currentIdx > 0) { currentIdx--; renderQuestion(); }
+}
+
+// ═══════════════════════════════════════
+// Results with detailed strategies
+// ═══════════════════════════════════════
+
+function calcScore(prefix, count) {
+  let total = 0;
+  for (let i = 1; i <= count; i++) total += (answers[prefix + i] || 0);
+  return total;
+}
+
+function strategy(score, type) {
+  if (type === 'phq9') {
+    if (score <= 4) return {
+      label:'无明显抑郁症状', cls:'severity-none',
+      level:'正常范围',
+      intro:'您的 PHQ-9 得分在正常范围内。每个人都偶尔会有情绪低落的时候，这是人类情感的正常组成部分。',
+      actions: [
+        '<strong>保持节奏：</strong>维持规律的作息、均衡的饮食和每周至少150分钟的中等强度运动。研究表明，运动对预防抑郁的效果与低剂量抗抑郁药相当。',
+        '<strong>社交连接：</strong>定期与朋友、家人面对面交流。孤独感是抑郁的已知风险因素。',
+        '<strong>情绪日志：</strong>如果偶尔感到低落，可以尝试写"三件好事"日记——每天睡前记录三件今天让你感到感恩或开心的事。这个简单的练习被证实能显著提升幸福感。'
+      ]
+    };
+    if (score <= 9) return {
+      label:'轻度抑郁可能', cls:'severity-mild',
+      level:'亚临床 / 轻度',
+      intro:'您可能正在经历一些轻度抑郁症状——程度还不足以诊断抑郁症，但已经影响到了生活质量。这个阶段是干预的最佳窗口期。',
+      actions: [
+        '<strong>行为激活：</strong>抑郁会让你"什么都不想做"，而什么都不做又会加重抑郁。打破这个循环的方法是——先行动，再等动力来。每天给自己设定一个很小的目标（比如散步10分钟、整理一个抽屉），完成后记录下来。',
+        '<strong>光照疗法：</strong>每天上午在户外待 20-30 分钟。自然光对调节情绪有明确的生理学证据。如果是冬季或长期阴雨天，可以考虑购买 10,000 lux 的光疗灯。',
+        '<strong>限制反刍：</strong>设置一个"担忧时间"——每天固定15分钟专门用来想那些让你焦虑的事。其他时间如果开始反复想，告诉自己"留到担忧时间再想"。这能有效打破持续性反刍思维。',
+        '<strong>营养检查：</strong>去查一下血常规、甲状腺功能和维生素D水平。甲状腺功能减退和维生素D缺乏都可能表现为抑郁症状。'
+      ]
+    };
+    if (score <= 14) return {
+      label:'中度抑郁可能', cls:'severity-moderate',
+      level:'中度',
+      intro:'您的得分提示可能存在中度抑郁。在这个阶段，靠自己"硬扛"通常效果不佳——这不是意志力的问题，而是大脑的神经化学已经发生了改变，需要专业介入。',
+      actions: [
+        '<strong>心理咨询评估：</strong>建议预约一次心理咨询或精神科初诊。认知行为疗法(CBT)和人际心理治疗(IPT)对中度抑郁有充分的循证支持。一次咨询大约 50 分钟，费用 300-800 元不等，许多城市的三甲医院心理科可以用医保。',
+        '<strong>药物不是洪水猛兽：</strong>如果医生建议药物治疗，请不要恐慌。SSRI 类抗抑郁药不是"快乐药丸"，它不会改变你的性格，而是帮助你恢复到生病的基线水平，让你有能力去做那些对康复有益的事。通常 2-4 周起效。',
+        '<strong>建立安全网：</strong>告诉一个你信任的人你的状况。不需要对方"解决问题"，只需要对方知道并愿意在你需要时陪伴。如果你没有这样的对象，可以拨打 400-161-9995 心理援助热线——免费、匿名、24小时。'
+      ]
+    };
+    if (score <= 19) return {
+      label:'中重度抑郁可能', cls:'severity-severe',
+      level:'中重度',
+      intro:'您的得分提示可能存在中重度抑郁。这已经是一个需要认真对待的信号。中重度抑郁不是"心情不好"，而是一种需要系统性治疗的医学状况。',
+      actions: [
+        '<strong>尽快就医：</strong>建议在本周内预约精神科（或临床心理科）。医生会做全面评估，排除其他可能导致抑郁症状的躯体疾病（如甲状腺问题、贫血等），并制定个性化治疗方案。',
+        '<strong>药物治疗+心理治疗联合：</strong>对于中重度抑郁，药物联合心理治疗的效果显著优于单一治疗。药物帮助恢复基本的情绪调节能力，心理治疗帮助你识别和改变导致抑郁的思维和行为模式。',
+        '<strong>请假休息是合理的：</strong>抑郁是一种疾病，就像肺炎需要休息一样。如果工作或学习已经让你难以应付，请病假休息是合理且必要的。',
+        '<strong>安全计划：</strong>如果你有任何自伤或自杀的念头，请把家里可能的危险物品交给信任的人保管。同时把 400-161-9995 存在手机通讯录里。'
+      ]
+    };
+    return {
+      label:'重度抑郁可能', cls:'severity-severe',
+      level:'重度',
+      intro:'您的得分提示可能存在重度抑郁发作。请理解：这不是"矫情"、不是"性格软弱"、不是"想开点就好了"。重度抑郁是一种可能危及生命的医学急症，需要立即干预。',
+      actions: [
+        '<strong>立即就医：</strong>请在 24-48 小时内联系精神科。如果无法预约到门诊，可以直接去综合医院的精神科急诊。重度抑郁是可以治疗的——电休克治疗(ECT)和药物治疗对重度抑郁的有效率在 70-80% 以上。',
+        '<strong>不要一个人待着：</strong>告诉家人或朋友你的真实状况。如果你觉得自己是负担，请知道：你的存在对爱你的人的意义，远超你的想象。',
+        '<strong>如果你现在有伤害自己的冲动：</strong>请立即拨打 110 或 120，或让身边的人送你去最近的医院急诊。同时可以拨打 400-161-9995（24小时心理援助热线）。'
+      ]
+    };
+  } else {
+    // GAD-7 strategies
+    if (score <= 4) return {
+      label:'无明显焦虑症状', cls:'severity-none',
+      level:'正常范围',
+      intro:'您的 GAD-7 得分在正常范围内。适度的焦虑是人类进化保留的生存机制——它帮助我们在危险面前保持警觉、在deadline前完成任务。',
+      actions: [
+        '<strong>区分"有益焦虑"和"无益焦虑"：</strong>有益焦虑促使你行动（如备考前的紧张让你认真学习）；无益焦虑让你瘫痪（如反复担忧一件你已经无法改变的事）。学会识别两者的区别。',
+        '<strong>呼吸调节：</strong>当偶尔感到紧张时，试试"4-7-8呼吸法"——吸气4秒、屏息7秒、缓慢呼气8秒。这个简单的技术能快速激活副交感神经系统。',
+        '<strong>咖啡因审查：</strong>如果你容易焦虑，注意咖啡、浓茶、能量饮料的摄入量。咖啡因是一种腺苷受体拮抗剂，会直接增强焦虑感。'
+      ]
+    };
+    if (score <= 9) return {
+      label:'轻度焦虑可能', cls:'severity-mild',
+      level:'亚临床 / 轻度',
+      intro:'您可能正在经历轻度焦虑。这个水平的焦虑通常可以通过非药物手段有效管理。',
+      actions: [
+        '<strong>正念练习：</strong>每天 10 分钟的正念冥想可以显著降低焦虑水平。推荐使用"潮汐"、"Now正念"等App入门。核心不是"不想任何事"，而是学会观察自己的念头而不被卷入。',
+        '<strong>运动处方：</strong>有氧运动对焦虑的效果有大量循证支持。每次 30 分钟的中高强度运动（心率达到 [220-年龄]×70%），每周 3-5 次，效果与低剂量抗焦虑药相当。',
+        '<strong>认知重构练习：</strong>当你担忧一件事时，问自己三个问题：(1) 这件事发生的真实概率是多少？(2) 如果最坏情况发生，我真的无法应对吗？(3) 一个月后我还会记得这件事吗？',
+        '<strong>限时刷手机：</strong>信息过载是现代焦虑的重要来源。设定每天"勿扰时段"——比如睡前 1 小时不看手机。'
+      ]
+    };
+    if (score <= 14) return {
+      label:'中度焦虑可能', cls:'severity-moderate',
+      level:'中度',
+      intro:'您的得分提示可能存在中度焦虑。在这个阶段，焦虑已经开始显著影响日常生活——睡眠、工作、人际关系可能都受到波及。',
+      actions: [
+        '<strong>认知行为疗法(CBT)：</strong>CBT 是治疗焦虑症最有效的心理治疗方法。它教你识别"灾难化思维"——比如"万一……怎么办"的思维链——并用更现实的评估替代它。通常 8-12 次CBT可以显著改善中度焦虑。',
+        '<strong>渐进式暴露：</strong>如果你因为焦虑而回避某些场景（如社交、出门），可以尝试渐进式暴露——从最容易的场景开始，逐步挑战难度更大的。每一次成功面对恐惧，焦虑的强度都会下降一点。',
+        '<strong>体检排查：</strong>建议查一下甲状腺功能、血糖和电解质。甲亢、低血糖、电解质紊乱都可能导致焦虑症状。'
+      ]
+    };
+    return {
+      label:'重度焦虑可能', cls:'severity-severe',
+      level:'重度',
+      intro:'您的得分提示可能存在重度焦虑。这种程度的焦虑往往伴随着明显的躯体症状——心悸、胸闷、手抖、出汗、窒息感——有时会被误认为是心脏病发作。',
+      actions: [
+        '<strong>尽快就医：</strong>建议在本周内预约精神科。医生可能会建议 SSRI 类药物（如舍曲林、帕罗西汀），这类药物对广泛性焦虑有很好的疗效。药物通常 2-4 周起效，请坚持服用，不要因为前两天没感觉就停药。',
+        '<strong>惊恐发作时的应对：</strong>如果你经历了惊恐发作（突然的心悸、窒息感、濒死感），请记住：惊恐发作不会导致死亡或发疯——它的生理机制是肾上腺素的一次"错误释放"，通常在 10-20 分钟内自行消退。发作时尝试"5-4-3-2-1"感官接地法：说出你看到的 5 样东西、触摸到的 4 样东西、听到的 3 种声音、闻到的 2 种气味、尝到的 1 种味道。',
+        '<strong>暂时回避咖啡因和酒精：</strong>两者都会加重焦虑——酒精在代谢后会产生反弹性焦虑。',
+        '<strong>安全计划：</strong>如果你出现不敢出门、不敢独处等情况，请向家人说明你的状况，并请他们陪同就医。这不是依赖，是暂时的支持。'
+      ]
+    };
+  }
+}
+
+function showResults() {
+  document.getElementById('progressWrap').style.display = 'none';
+  const phqScore = calcScore('phq', 9), gadScore = calcScore('gad', 7);
+  const phqS = strategy(phqScore, 'phq9'), gadS = strategy(gadScore, 'gad7');
+  const phqPct = Math.round(phqScore / 27 * 100), gadPct = Math.round(gadScore / 21 * 100);
+  const needsHelp = phqScore >= 10 || gadScore >= 10 || answers.phq9 >= 2;
+
+  document.getElementById('app').innerHTML = `
+    <div class="header fade-in">
+      <div class="badge">评估完成</div>
+      <h1>您的情绪状态报告</h1>
+      <p>基于 PHQ-9 + GAD-7 国际标准 · 近两周内</p>
+    </div>
+
+    <div class="card fade-in">
+      <div class="result-header">
+        <div class="result-score">${phqScore}<span style="font-size:24px;color:#86868b">/27</span></div>
+        <div class="result-score-label">抑郁指数 · 严重程度：${phqS.level}</div>
+        <div class="severity-badge ${phqS.cls}">${phqS.label}</div>
+      </div>
+      <div class="result-bar-wrap">
+        <div class="result-bar-label"><span>0</span><span>正常</span><span>轻度</span><span>中度</span><span>中重度</span><span>重度</span><span>27</span></div>
+        <div class="result-bar"><div class="result-bar-fill depression" style="width:${phqPct}%"></div></div>
+      </div>
+      <div class="result-section"><p>${phqS.intro}</p></div>
+
+      <div class="accordion open">
+        <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+          针对您的得分 · 具体建议 <span class="arrow">▾</span>
+        </div>
+        <div class="accordion-body"><div class="accordion-body-inner">
+          <ul>${phqS.actions.map(a => '<li>'+a+'</li>').join('')}</ul>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="card fade-in" style="animation-delay:0.1s">
+      <div class="result-header">
+        <div class="result-score">${gadScore}<span style="font-size:24px;color:#86868b">/21</span></div>
+        <div class="result-score-label">焦虑指数 · 严重程度：${gadS.level}</div>
+        <div class="severity-badge ${gadS.cls}">${gadS.label}</div>
+      </div>
+      <div class="result-bar-wrap">
+        <div class="result-bar-label"><span>0</span><span>正常</span><span>轻度</span><span>中度</span><span>重度</span><span>21</span></div>
+        <div class="result-bar"><div class="result-bar-fill anxiety" style="width:${gadPct}%"></div></div>
+      </div>
+      <div class="result-section"><p>${gadS.intro}</p></div>
+
+      <div class="accordion open">
+        <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+          针对您的得分 · 具体建议 <span class="arrow">▾</span>
+        </div>
+        <div class="accordion-body"><div class="accordion-body-inner">
+          <ul>${gadS.actions.map(a => '<li>'+a+'</li>').join('')}</ul>
+        </div></div>
+      </div>
+    </div>
+
+    ${(phqScore >= 5 || gadScore >= 5) ? `
+    <div class="card fade-in">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:12px;">📖 推荐阅读与资源</h3>
+      <ul style="font-size:15px;color:#4b5563;line-height:2;margin-left:20px;">
+        <li>《伯恩斯新情绪疗法》— David Burns · CBT自助经典</li>
+        <li>《焦虑症的自救》— Claire Weekes · 面对、接受、飘然、等待</li>
+        <li>潮汐 App / Now正念 · 中文正念冥想入门</li>
+        <li>简单心理 / 壹心理 · 在线心理咨询预约平台</li>
+      </ul>
+    </div>
+    ` : ''}
+
+    ${needsHelp ? `
+    <div class="cta-box fade-in">
+      <h3>🫂 求助是一种力量</h3>
+      <p>情绪问题不是你的错，康复是可能的。<br>你可以从今天开始做出改变。</p>
+      <div class="action-row">
+        <a href="https://www.12320.gov.cn/" target="_blank" class="btn btn-outline" style="width:auto;padding:12px 20px;">全国心理援助热线</a>
+      </div>
+      <p style="font-size:13px;color:#86868b;margin-top:12px">24小时心理援助：400-161-9995 &nbsp;|&nbsp; 希望24热线：400-161-9995</p>
+    </div>
+    ` : ''}
+
+    <div style="text-align:center;margin-top:20px">
+      <button class="btn btn-outline" onclick="resetTest()">重新测试</button>
+    </div>
+
+    <div class="disclaimer">
+      本测试使用 PHQ-9 (Kroenke et al., 2001) 和 GAD-7 (Spitzer et al., 2006) 国际标准量表。<br>
+      结果仅用于自我筛查参考，不构成医学诊断。如有情绪困扰，请咨询专业医疗机构。
+    </div>
+  `;
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function resetTest() { answers = {}; currentIdx = 0; renderIntro(); window.scrollTo({ top:0, behavior:'smooth' }); }
+renderIntro();
+</script>
+</body>
+</html>
