@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ADHD 成人自测 · ASRS-v1.1</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f7;color:#1d1d1f;line-height:1.6}
+.container{max-width:640px;margin:0 auto;padding:0 24px}
+.header{text-align:center;padding:56px 0 32px}
+.header .badge{display:inline-block;background:rgba(147,51,234,0.08);color:#7c3aed;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:16px}
+.header h1{font-size:32px;font-weight:700;letter-spacing:-0.03em;margin-bottom:8px}
+.header p{font-size:17px;color:#86868b}
+.card{background:#fff;border-radius:20px;padding:40px 36px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 8px 32px rgba(0,0,0,0.04)}
+.q-num{font-size:13px;color:#86868b;margin-bottom:8px}
+.q-text{font-size:22px;font-weight:600;line-height:1.4;margin-bottom:12px}
+.q-ctx{font-size:15px;color:#86868b;line-height:1.6;margin-bottom:24px;padding:14px 18px;background:#f9fafb;border-radius:12px;border-left:3px solid #d1d5db}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:14px;padding:16px 20px;border:1.5px solid #e5e5ea;border-radius:14px;cursor:pointer;transition:all 0.15s;background:#fff}
+.opt:hover{border-color:#7c3aed;background:#f5f3ff}
+.opt.sel{border-color:#7c3aed;background:#f5f3ff;box-shadow:0 0 0 3px rgba(147,51,234,0.1)}
+.opt-r{width:22px;height:22px;min-width:22px;border-radius:50%;border:2px solid #d1d5db}
+.opt.sel .opt-r{border-color:#7c3aed;background:#7c3aed}
+.opt.sel .opt-r::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;display:block;margin:5px}
+.opt-label{font-size:17px}.opt-desc{font-size:13px;color:#86868b;margin-top:2px;display:block}
+.progress-wrap{position:sticky;top:0;z-index:10;background:rgba(245,245,247,0.85);backdrop-filter:saturate(180%)blur(20px);padding:12px 24px;border-bottom:1px solid rgba(0,0,0,0.04)}
+.progress-inner{max-width:592px;margin:0 auto}.progress-label{display:flex;justify-content:space-between;font-size:13px;color:#86868b;margin-bottom:6px}
+.progress-bar{height:4px;background:#e5e5ea;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:#7c3aed;border-radius:2px;transition:width 0.4s}
+.btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:16px 0;border-radius:14px;font-size:17px;font-weight:600;border:none;cursor:pointer}
+.btn-p{background:#7c3aed;color:#fff}.btn-p:hover{background:#6d28d9}.btn-p:disabled{background:#d1d5db;cursor:not-allowed}
+.btn-o{background:none;color:#86868b;border:1.5px solid #e5e5ea;width:auto;padding:12px 24px}
+.result-section{background:#f9fafb;border-radius:16px;padding:24px;margin-bottom:16px}
+.result-section h3{font-size:17px;font-weight:700;margin-bottom:12px}.result-section p{font-size:15px;color:#4b5563;line-height:1.7}.result-section li{font-size:15px;color:#4b5563;line-height:1.8;margin-left:20px}
+.severity-badge{display:inline-block;padding:8px 20px;border-radius:20px;font-size:16px;font-weight:700;margin-top:16px}
+.sev-low{background:#f0fdf4;color:#166534}.sev-mid{background:#fef9c3;color:#854d0e}.sev-high{background:#fecaca;color:#991b1b}
+.fade-in{animation:fadeIn 0.4s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.disclaimer{text-align:center;font-size:13px;color:#9ca3af;padding:32px 0}
+@media(max-width:480px){.header h1{font-size:26px}.card{padding:28px 20px}.q-text{font-size:20px}}
+</style></head><body>
+<div class="progress-wrap" id="progWrap" style="display:none"><div class="progress-inner"><div class="progress-label"><span>ADHD 成人自测</span><span id="progCount">1/6</span></div><div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div></div></div>
+<div class="container" id="app"></div>
+<script>
+const Q=[
+{id:'q1',text:'你有多频繁地在完成任务时遇到"最后一刻冲刺"的问题——即使你其实有足够的时间？',ctx:'比如：你提前知道一个截止日期，但每次都是在前一晚才发现自己什么都还没开始做，最后只能熬夜赶工。',opts:[{l:'从不',v:0,d:'我能按计划分步完成'},{l:'偶尔',v:1,d:'重要的事才会拖到最后'},{l:'经常',v:2,d:'大多数任务都是deadline驱动'},{l:'几乎总是',v:3,d:'这是我最主要的工作方式'}]},
+{id:'q2',text:'当你需要做一件需要长时间集中注意力的事时，你有多频繁地分心或走神？',ctx:'比如：开会时你发现自己在列购物清单；看一份文件不到五分钟就开始东张西望或拿起手机。',opts:[{l:'从不',v:0,d:'我能保持专注'},{l:'偶尔',v:1,d:'在特别长或枯燥的任务中'},{l:'经常',v:2,d:'大多数需要长时间坐着的场景'},{l:'几乎总是',v:3,d:'看这篇文章时我已经走了两次神'}]},
+{id:'q3',text:'你有多频繁地因为"过度活跃"而感到内心不安——即使身体没有动？',ctx:'比如：你感觉内心永远有一个"马达"在运转。即使坐着不动，脑海里也有无数个念头在跑——这个没做、那个忘了、还有一件事……',opts:[{l:'从不',v:0,d:'内心平静'},{l:'偶尔',v:1,d:'压力大时才会这样'},{l:'经常',v:2,d:'大部分时间都觉得停不下来'},{l:'几乎总是',v:3,d:'我几乎无法"关机"'}]},
+{id:'q4',text:'你有多频繁地打断别人的对话，或者在别人讲话时插话？',ctx:'比如：朋友话还没说完，你已经知道他想说什么，于是直接替他说完了。或者开会时忍不住脱口而出你的想法。',opts:[{l:'从不',v:0,d:'我能耐心听完'},{l:'偶尔',v:1,d:'特别兴奋时才会抢话'},{l:'经常',v:2,d:'我知道这样不好但控制不住'},{l:'几乎总是',v:3,d:'别人已经习惯了'}]},
+{id:'q5',text:'你有多频繁地忘记日常的约定或义务？',ctx:'比如：忘记朋友的饭局、错过会议、忘了交水电费、答应的事过两天完全没印象——即使你当时很认真。',opts:[{l:'从不',v:0,d:'我能记住该做的事'},{l:'偶尔',v:1},{l:'经常',v:2,d:'需要日历和提醒功能才能不遗漏'},{l:'几乎总是',v:3,d:'我的备忘录已经快罢工了'}]},
+{id:'q6',text:'你有多频繁地丢东西或找不到日常需要的物品？',ctx:'比如：手机、钥匙、钱包、眼镜。每次出门前都要花10分钟找"明明刚才还在手上"的东西。',opts:[{l:'从不',v:0,d:'我的东西都在固定位置'},{l:'偶尔',v:1},{l:'经常',v:2,d:'一周好几次，像寻宝游戏'},{l:'几乎总是',v:3,d:'如果哪天没找东西反而不正常'}]},
+];
+let ans={},idx=0;
+function renderIntro(){
+  document.getElementById('progWrap').style.display='none';
+  document.getElementById('app').innerHTML=`
+    <div class="header fade-in"><div class="badge">ASRS-v1.1 · 国际标准</div><h1>ADHD 成人注意力自测</h1><p>成人 ADHD 自我报告量表 · 6题 · 约2分钟</p></div>
+    <div class="card fade-in">
+      <p style="font-size:15px;color:#4b5563;line-height:1.7;margin-bottom:16px">ADHD 不只是"儿童多动症"。超过 60% 的 ADHD 儿童症状持续到成年，而很多成年人从未被诊断——他们只是被告知"你粗心""你懒""你不努力"。</p>
+      <p style="font-size:15px;color:#4b5563;line-height:1.7;margin-bottom:16px"><strong>本测试基于 ASRS-v1.1（成人 ADHD 自我报告量表），由世界卫生组织开发。</strong>6题中的前4题为关键筛查项。</p>
+      <div style="background:#fef3c7;padding:16px 20px;border-radius:12px;font-size:14px;color:#92400e;margin-top:16px">⚠️ 本测试仅为初筛，不能替代专业诊断。如果你在多个生活领域（工作、家庭、社交）持续出现注意力困难，建议预约精神科/心理科做全面评估。</div>
+      <button class="btn btn-p" style="margin-top:24px" onclick="start()">开始测试</button>
+    </div>`;
+}
+function start(){idx=0;ans={};document.getElementById('progWrap').style.display='block';renderQ();}
+function renderQ(){
+  const q=Q[idx];const pct=Math.round((idx/Q.length)*100);
+  document.getElementById('progCount').textContent=`${idx+1}/${Q.length}`;document.getElementById('progFill').style.width=pct+'%';
+  const ex=ans[q.id]!==undefined?ans[q.id]:-1;
+  document.getElementById('app').innerHTML=`<div class="card fade-in"><div class="q-num">${idx+1}/${Q.length}</div><div class="q-text">${q.text}</div><div class="q-ctx">${q.ctx}</div><div class="opts">${q.opts.map((o,i)=>`<div class="opt ${i===ex?'sel':''}" onclick="sel(${i})"><div class="opt-r"></div><div><span class="opt-label">${o.l}</span><span class="opt-desc">${o.d}</span></div></div>`).join('')}</div><button class="btn btn-p" style="margin-top:24px" id="nb" ${ex===-1?'disabled':''} onclick="next()">${idx<Q.length-1?'下一题':'查看结果'}</button><button class="btn btn-o" style="margin-top:8px" onclick="prev()" ${idx===0?'disabled':''}>上一题</button></div>`;window.scrollTo({top:0,behavior:'smooth'});}
+function sel(v){ans[Q[idx].id]=Q[idx].opts[v].v;document.querySelectorAll('.opt').forEach((e,i)=>e.classList.toggle('sel',i===v));document.getElementById('nb').disabled=false;}
+function next(){if(idx<Q.length-1){idx++;renderQ()}else{showR()}}
+function prev(){if(idx>0){idx--;renderQ()}}
+function showR(){
+  document.getElementById('progWrap').style.display='none';
+  const total=Object.values(ans).reduce((a,b)=>a+b,0);
+  const crit=ans.q1>=2&&ans.q2>=2&&ans.q3>=2&&ans.q4>=2?1:0;
+  let sev,cls,desc,acts;
+  if(total<=3&&!crit){sev='低风险';cls='sev-low';desc='您的得分在正常范围。如果有特定任务让你感到注意力不足，可能只是性格或环境因素。';acts=['保持规律作息——睡眠不足是最常见的"伪ADHD"原因','减少多任务切换——每次只做一件事','如果特定场景（如开会）特别困难，针对该场景做行为调整'];}
+  else if(total<=8||!crit){sev='中等风险 · 建议关注';cls='sev-mid';desc='您可能在某些领域存在注意力管理困难。虽然不构成诊断，但这些症状可能已经影响到工作效率和生活质量。';acts=['尝试"番茄工作法"：25分钟专注+5分钟休息','减少社交媒体使用——碎片化信息会加重注意力涣散','如果困难持续超过6个月且涉及多个生活领域，建议预约一次心理科评估','写下每天最难专注的时刻，看是否有规律（如：下午2-4点最严重）'];}
+  else{sev='高风险 · 强烈建议评估';cls='sev-high';desc='您的得分在筛查量表中达到临床关注水平。ADHD 是一种可以被有效治疗的神经发育差异——药物（如哌甲酯）和认知行为疗法（CBT）被证实对成人 ADHD 有显著效果。很多人确诊后说的第一句话是："原来不是我懒。"';acts=['预约精神科或临床心理科做全面评估（医生可能会做 DIVA 结构化访谈）','在此之前不要自行购买药物——兴奋剂类药物在中国是严格管控的处方药','找一个"外部大脑"——日程表、提醒App、把任务写在看得见的地方','告诉你的重要他人你的情况——独自面对会累很多'];}
+
+  document.getElementById('app').innerHTML=`
+    <div class="header fade-in"><div class="badge" style="background:${cls==='sev-high'?'rgba(147,51,234,0.1)':'rgba(168,85,247,0.08)'}">ASRS-v1.1 · 结果</div><h1>成人 ADHD 筛查结果</h1><p>总分 ${total}/18 · 关键筛查项 ${crit?'阳性':'阴性'}</p><div class="severity-badge ${cls}">${sev}</div></div>
+    <div class="card fade-in"><div class="result-section"><p>${desc}</p></div></div>
+    <div class="card fade-in"><h3 style="font-size:18px;font-weight:700;margin-bottom:12px">📋 建议行动</h3><div class="result-section"><ul>${acts.map(a=>'<li>'+a+'</li>').join('')}</ul></div></div>
+    <div style="text-align:center;margin-top:20px"><button class="btn btn-o" onclick="resetTest()">重新测试</button></div>
+    <div class="disclaimer">ASRS-v1.1 (Kessler et al., 2005)。结果仅供参考，不构成医学诊断。</div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetTest(){ans={};idx=0;renderIntro();window.scrollTo({top:0,behavior:'smooth'});}
+renderIntro();
+</script></body></html>
