@@ -17,7 +17,7 @@
     <meta property="og:description" content="遵义大学口腔正畸学硕士，江西省正畸专委会委员，南昌最早开展隐形矫正的医生之一。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.yanling.cn/">
-    <meta property="og:image" content="https://www.yanling.cn/images/yanling-portrait.jpg">
+    <meta property="og:image" content="https://www.yanling.cn/images/share-card.jpg">
 
     <script type="application/ld+json">
     {
@@ -140,7 +140,7 @@
     <div class="container">
         <h2 class="section-title">正畸科普</h2>
         <p class="section-subtitle">面诊时没来得及问的，这里都有</p>
-        <div class="video-section" id="videoSection"></div>
+        <p class="section-subtitle" style="text-align:center; color:#9ca3af; margin-top:8px;">视频整理中，敬请期待</p>
     </div>
 </section>
 
@@ -248,18 +248,7 @@
     }
     document.getElementById('eduGallery').innerHTML = eduHtml;
 
-    // 视频区
-    var videoHtml = '';
-    var videos = [
-        {title:'燕玲医生介绍',src:'images/intro-1.mp4'},
-        {title:'隐形矫正科普',src:'images/kepu-1.mp4'},
-        {title:'儿童早矫科普',src:'images/kepu-2.mp4'},
-        {title:'矫正后如何保持',src:'images/kepu-3.mp4'},
-    ];
-    videos.forEach(function(v){
-        videoHtml += '<div class="video-card"><h3>'+v.title+'</h3><div class="video-slot"><video controls preload="none"><source src="'+v.src+'" type="video/mp4"></video></div></div>';
-    });
-    document.getElementById('videoSection').innerHTML = videoHtml;
+    // 视频区（本地 mp4 已移除，待 B 站视频链接到位后改为 iframe 嵌入）
 })();
 </script>
 </body>
